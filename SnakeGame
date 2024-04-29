@@ -26,7 +26,8 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
 
     //food
     Tile food;
-    Tile specialFood;
+    Tile specialFood; // Decrease length food
+    Tile teleportFood; // Teleport food
     Random random;
 
     //food timer
@@ -41,8 +42,12 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     //score
     int score;
     int foodsEaten; // Keep track of the number of foods eaten
+    int teleportFoodsEaten = 0; // Keep track of the number of teleport foods eaten
 
     boolean gameOver = false;
+    boolean gameStarted = false; // Variable to track if the game has started
+    boolean gamePaused = true; // Variable to track if the game is paused (initially true)
+    boolean keyPressed = false; // Variable to track if a key has been pressed
 
     SnakeGame(int boardWidth, int boardHeight) {
         this.boardWidth = boardWidth;
@@ -59,6 +64,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
 
         food = new Tile(10, 10);
         specialFood = new Tile(10, 10);
+        teleportFood = new Tile(10, 10); // Initialize teleportFood
         random = new Random();
         placeFood();
 
@@ -154,6 +160,12 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
             g.fill3DRect(specialFood.x*tileSize, specialFood.y*tileSize, tileSize, tileSize, true);
         }
 
+        // Draw the teleport food
+        if (teleportFood.x >= 0 && teleportFood.y >= 0) {
+            g.setColor(Color.MAGENTA);
+            g.fill3DRect(teleportFood.x*tileSize, teleportFood.y*tileSize, tileSize, tileSize, true);
+        }
+
         //Snake Head
         g.setColor(Color.GREEN);
         g.fill3DRect(snakeHead.x*tileSize, snakeHead.y*tileSize, tileSize, tileSize, true);
@@ -171,27 +183,50 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
             g.drawString("Game Over: " + String.valueOf(getScore()), (boardWidth / 2) - (tileSize * 3), tileSize);
         }
         else {
-            g.drawString("Score: " + String.valueOf(getScore()), (boardWidth / 2) - (tileSize * 2), tileSize);
+            g.drawString("Score: " + String.valueOf(getScore()) + " | Teleports: " + teleportFoodsEaten, (boardWidth / 2) - (tileSize * 4), tileSize);
+        }
+
+        // If the game hasn't started, display a message
+        if (!gameStarted) {
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Arial", Font.BOLD, 20));
+            g.drawString("Press any key to play", (boardWidth / 2) - (tileSize * 4), (boardHeight / 2));
+        } else if (gamePaused) {
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Arial", Font.BOLD, 20));
+            g.drawString("Game Paused", (boardWidth / 2) - (tileSize * 3), (boardHeight / 2));
         }
     }
 
     public void placeFood() {
-        // Randomly decide whether to place the regular food or the special food
-        if (random.nextBoolean()) {
+        // Randomly decide whether to place the regular food, special food, or teleport food
+        int foodType = random.nextInt(3);
+        if (foodType == 0) {
             food.x = random.nextInt(boardWidth/tileSize);
             food.y = random.nextInt(boardHeight/tileSize);
             specialFood.x = -1; // Set the special food position outside the board
             specialFood.y = -1;
+            teleportFood.x = -1; // Set the teleport food position outside the board
+            teleportFood.y = -1;
             foodStartTime = System.currentTimeMillis(); // Set the start time for the regular food
-        } else {
+        } else if (foodType == 1) {
             food.x = -1; // Set the regular food position outside the board
             food.y = -1;
             specialFood.x = random.nextInt(boardWidth/tileSize);
             specialFood.y = random.nextInt(boardHeight/tileSize);
+            teleportFood.x = -1; // Set the teleport food position outside the board
+            teleportFood.y = -1;
             foodStartTime = System.currentTimeMillis(); // Set the start time for the special food
+        } else {
+            food.x = -1; // Set the regular food position outside the board
+            food.y = -1;
+            specialFood.x = -1; // Set the special food position outside the board
+            specialFood.y = -1;
+            teleportFood.x = random.nextInt(boardWidth/tileSize);
+            teleportFood.y = random.nextInt(boardHeight/tileSize);
+            foodStartTime = System.currentTimeMillis(); // Set the start time for the teleport food
         }
     }
-
     public void move() {
         // Check if the regular food should disappear
         if (food.x >= 0 && food.y >= 0 && System.currentTimeMillis() - foodStartTime >= foodDuration) {
@@ -203,7 +238,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
             placeFood(); // Place a new food in a random location
         }
 
-        // Eat food
+        // Eat food and special food
         if (food.x >= 0 && food.y >= 0 && collision(snakeHead, food)) {
             snakeBody.add(new Tile(food.x, food.y)); // Add a new tile to the snake body
             snakeBody.add(0, new Tile(snakeHead.x, snakeHead.y));
@@ -217,6 +252,20 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
             }
             updateScore();
             placeFood(); // Place a new food in a random location
+        }
+
+        // Eat teleport food
+        if (teleportFood.x >= 0 && teleportFood.y >= 0 && collision(snakeHead, teleportFood)) {
+            updateScore();
+            teleportFoodsEaten++; // Increment the number of teleport foods eaten
+            placeFood(); // Place a new food in a random location
+
+            // Teleport the snake head to the opposite side of the screen if teleportFoodsEaten > 0
+            if (teleportFoodsEaten > 0) {
+                snakeHead.x = (snakeHead.x + (boardWidth / tileSize) / 2) % (boardWidth / tileSize);
+                snakeHead.y = (snakeHead.y + (boardHeight / tileSize) / 2) % (boardHeight / tileSize);
+                teleportFoodsEaten--; // Decrement the teleport count
+            }
         }
 
         //move snake body
@@ -258,7 +307,9 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void actionPerformed(ActionEvent e) { //called every x milliseconds by gameLoop timer
-        move();
+        if (gameStarted && keyPressed) {
+            move();
+        }
         repaint();
         if (gameOver) {
             JOptionPane.showMessageDialog(this, "You lose! You're a loser!");
@@ -267,6 +318,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
                 // Reset game state
                 score = 0;
                 foodsEaten = 0;
+                teleportFoodsEaten = 0;
                 gameOver = false;
                 snakeBody.clear();
                 snakeHead = new Tile(5, 5); // Reset snake head position
@@ -283,6 +335,14 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
+        if (!gameStarted) {
+            gameStarted = true; // Start the game when any key is pressed
+            keyPressed = true; // Set keyPressed to true
+            gameLoop.start(); // Start the game loop
+            gamePaused = false; // Unpause the game when a key is pressed
+        } else if (gamePaused) {
+            gamePaused = false; // Unpause the game when a key is pressed
+        }
         // System.out.println("KeyEvent: " + e.getKeyCode());
         if (e.getKeyCode() == KeyEvent.VK_UP && velocityY != 1) {
             velocityX = 0;
