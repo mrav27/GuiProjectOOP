@@ -1,20 +1,37 @@
+package snakeimages;
+
 import javax.swing.*;
 
-public class App {
-    public static void main(String[] args) throws Exception {
+public class App extends javax.swing.JFrame {
+    public App() {
+        initComponents();
+        
         int boardWidth = 600;
-        int boardHeight = boardWidth;
+        int boardHeight = 600;
 
-        JFrame frame = new JFrame("Snake");
-        frame.setVisible(true);
-        frame.setSize(boardWidth, boardHeight);
-        frame.setLocationRelativeTo(null);
-        frame.setResizable(false);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setTitle("Python Prowl");
 
-        SnakeGame snakeGame = new SnakeGame(boardWidth, boardHeight);
-        frame.add(snakeGame);
-        frame.pack();
-        snakeGame.requestFocus();
+        App snakeGame = new App(boardWidth, boardHeight);
+        add(snakeGame);
+
+        pack();
+        setLocationRelativeTo(null);
+    }
+
+    // Generated code by NetBeans for GUI initialization
+    @SuppressWarnings("unchecked")
+    private void initComponents() {
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setPreferredSize(new java.awt.Dimension(600, 600));
+        getContentPane().setLayout(new java.awt.GridLayout(1, 0));
+        pack();
+    }
+
+    // Main method to run the game
+    public static void main(String args[]) {
+        java.awt.EventQueue.invokeLater(() -> {
+            new App().setVisible(true);
+        });
     }
 }
