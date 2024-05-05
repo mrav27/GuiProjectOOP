@@ -384,16 +384,6 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        // Check if the snake head collided with the border after teleporting
-        if ((snakeHead.x == 0 || snakeHead.x == boardWidth / tileSize - 1 || snakeHead.y == 0 || snakeHead.y == boardHeight / tileSize - 1) && stackedTeleports > 0) {
-            // Check if the snake head actually went outside the screen after teleporting
-            boolean wentOutsideScreen = (snakeHead.x < 0 || snakeHead.x >= boardWidth / tileSize || snakeHead.y < 0 || snakeHead.y >= boardHeight / tileSize);
-            if (wentOutsideScreen) {
-                // Decrement the teleport count if the snake head went outside the screen after teleporting
-                stackedTeleports--;
-            }
-        }
-
         // Update the display after eating teleport food
         repaint();
 
@@ -422,7 +412,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        // Check if the snake head collided with the border and Wrap around the screen if the snake head reaches the border if has stackTeleport
+        // Check if the snake head collided with the border and Wrap around the screen if the snake head reaches the border if has stackTeleport then teleport
         if (snakeHead.x < 0 || snakeHead.x >= boardWidth / tileSize || snakeHead.y < 0 || snakeHead.y >= boardHeight / tileSize) {
             if (stackedTeleports > 0) {
                 wrapAroundScreen();
