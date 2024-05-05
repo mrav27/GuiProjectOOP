@@ -109,16 +109,16 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
         // Increment the score based on the current stage
         switch (currentStage) {
             case 1:
-                score += 30;
+                score += 10;
                 break;
             case 2:
-                score += 30;
+                score += 12;
                 break;
             case 3:
-                score += 30;
+                score += 15;
                 break;
             case 4:
-                score += 2;
+                score += 15;
                 break;
         }
 
@@ -191,6 +191,8 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     }
 
     public void draw(Graphics g) {
+        FontMetrics fontMetrics = g.getFontMetrics(new Font("Arial", Font.PLAIN, 16));
+
         /*Grid Lines
         for(int i = 0; i < boardWidth/tileSize; i++) {
             //(x1, y1, x2, y2)
@@ -240,19 +242,12 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-
-        //Score
+        // Draw the score, teleport count, and stage information
+        String scoreText = "Score: " + getScore() + " | Teleports: " + stackedTeleports + " | Stage: " + currentStage;
+        g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.PLAIN, 16));
-        if (gameOver) {
-            g.setColor(Color.red);
-            g.drawString("Game Over: " + String.valueOf(getScore()), (boardWidth / 2) - (tileSize * 3), tileSize);
-        }
-        else {
-            // Draw the number of stacked teleport foods and score
-            g.setColor(Color.WHITE);
-            g.setFont(new Font("Arial", Font.PLAIN, 16));
-            g.drawString("Score: " + String.valueOf(getScore()) + " | Teleports: " + stackedTeleports, (boardWidth / 2) - (tileSize * 4), tileSize);
-        }
+        g.drawString(scoreText, (boardWidth - fontMetrics.stringWidth(scoreText)) / 2, tileSize);
+
 
         // If the game hasn't started, display a message
         if (!gameStarted) {
