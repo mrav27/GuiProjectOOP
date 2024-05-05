@@ -1,0 +1,72 @@
+public class Reset {
+    private int score;
+    private int foodsEaten;
+    private int stackedTeleports;
+    private int currentStage;
+
+    public Reset() {
+        score = 0;
+        foodsEaten = 0;
+        stackedTeleports = 0;
+        currentStage = 1;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public int getFoodsEaten() {
+        return foodsEaten;
+    }
+
+    public int getStackedTeleports() {
+        return stackedTeleports;
+    }
+
+    public int getCurrentStage() {
+        return currentStage;
+    }
+
+    public void incrementScore(int points) {
+        score += points;
+    }
+
+    public void incrementFoodsEaten() {
+        foodsEaten++;
+    }
+
+    public void incrementStackedTeleports() {
+        stackedTeleports++;
+    }
+
+    public void setCurrentStage(int stage) {
+        currentStage = stage;
+    }
+
+    public void resetScore() {
+        score = 0;
+    }
+
+    public void resetFoodsEaten() {
+        foodsEaten = 0;
+    }
+
+    public void resetStackedTeleports() {
+        stackedTeleports = 0;
+    }
+
+    public void resetCurrentStage() {
+        currentStage = 1;
+    }
+
+    public void advanceToNextStage() {
+        currentStage++;
+    }
+
+    public void resetAll() {
+        resetScore();
+        resetFoodsEaten();
+        resetStackedTeleports();
+        resetCurrentStage();
+    }
+}
