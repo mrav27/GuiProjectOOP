@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.*;
 
+
 public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     protected class Tile {
         int x;
@@ -32,6 +33,8 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     Tile teleportFood; // Teleport food
     Random random;
 
+    //message proceeding to next stage
+    private long stageMessageStartTime = 0;
     //food timer
     private long foodStartTime;
     private long foodDuration = 5000;
@@ -40,8 +43,10 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     int velocityX;
     int velocityY;
     Timer gameLoop;
+
     //Object
     private Reset reset;
+
     //score
     int score;
     int foodsEaten; // Keep track of the number of foods eaten
@@ -54,6 +59,8 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     boolean keyPressed = false; // Variable to track if a key has been pressed
     boolean justAteFood = false; // Flag to indicate whether the snake just ate food
 
+    private String stageMessage;
+    private Timer stageMessageTimer;
     private GameOverListener gameOverListener;
 
     SnakeGame(int boardWidth, int boardHeight) {
@@ -93,8 +100,8 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     }
 
 
-    private boolean askReadyForStage(int stage) {
-        int ready = JOptionPane.showConfirmDialog(this, "Are you ready to enter Stage " + stage + "?", "Stage " + stage, JOptionPane.YES_OPTION);
+    private boolean askReadyForStage() {
+        int ready = JOptionPane.showConfirmDialog(this, "Are you ready to enter Stage " + currentStage + "?", "Stage " + currentStage, JOptionPane.YES_OPTION);
         return ready == JOptionPane.YES_OPTION;
     }
 
@@ -113,16 +120,16 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
         // Increment the score based on the current stage
         switch (currentStage) {
             case 1:
-                score += 10;
+                score += 50;
                 break;
             case 2:
-                score += 12;
+                score += 50;
                 break;
             case 3:
-                score += 15;
+                score += 50;
                 break;
             case 4:
-                score += 15;
+                score += 50;
                 break;
         }
 
@@ -131,23 +138,24 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
 
         // Check if the score threshold for each stage has been reached
         if (score >= 200 && currentStage == 1) {
+            showStageMessage();
             currentStage = 2;
-            setGameSpeed(2); // Set the game speed for Stage 2
-
-            // Place two blocks in the middle for Stage 2
-            placeBlocksInMiddle(2);
-            scatterBlocks(); // Scatter blocks again for Stage 2
+            setGameSpeed(2);
         } else if (score >= 400 && currentStage == 2) {
-
+            showStageMessage();
             currentStage = 3;
-            setGameSpeed(3); // Set the game speed for Stage 3
-            askReadyForStage(currentStage);
-            scatterBlocks(); // Scatter blocks again for Stage 3
+            setGameSpeed(3);
+            scatterBlocks();
+            repaint();
+            askReadyForStage();
+
         } else if (score >= 600 && currentStage == 3) {
+            showStageMessage();
             currentStage = 4;
-            setGameSpeed(4); // Set the game speed for Stage 4
-            askReadyForStage(currentStage);
-            scatterBlocks(); // Scatter blocks again for Stage 4
+            setGameSpeed(4);
+            scatterBlocks();
+            repaint();
+            askReadyForStage();
         } else if (score >= 1000 && currentStage == 4) {
             // Player wins the game when reaching the final score
             if(!askContinueGame()) {
@@ -156,6 +164,12 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
                 JOptionPane.showMessageDialog(this, "Congratulations! You won the game! Thank you For Playing!");
             }
         }
+    }
+
+    private void showStageMessage() {
+        stageMessage = "Stage " + (currentStage) + " completed. Advancing to Stage " + (currentStage+1) + "...";
+        stageMessageStartTime = System.currentTimeMillis();
+        repaint();
     }
 
     private void setGameSpeed(int stage) {
@@ -177,29 +191,15 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
         gameLoop.setDelay(delay);
     }
 
-    private void placeBlocksInMiddle(int numBlocks) {
-        // Place blocks in the middle of the board
-        int centerX = boardWidth / (2 * tileSize);
-        int centerY = boardHeight / (2 * tileSize);
-
-        // Place blocks around the existing snake body
-        for (int i = 0; i < numBlocks; i++) {
-            snakeBody.add(new Tile(centerX + i, centerY));
-            snakeBody.add(new Tile(centerX - i, centerY));
-        }
-    }
-
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         draw(g);
 
         FontMetrics fontMetrics = g.getFontMetrics(new Font("Arial", Font.PLAIN, 14));
 
-        if (currentStage > 1 && currentStage < 5) {
-            // Display a subtle message when advancing to the next stage
+        if (stageMessage != null && System.currentTimeMillis() - stageMessageStartTime < 3000) {
             g.setColor(Color.WHITE);
             g.setFont(new Font("Arial", Font.PLAIN, 14));
-            String stageMessage = "Stage " + (currentStage - 1) + " completed. Advancing to Stage " + currentStage + "...";
             g.drawString(stageMessage, (boardWidth - fontMetrics.stringWidth(stageMessage)) / 2, tileSize * 2);
         }
     }
