@@ -40,7 +40,8 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     int velocityX;
     int velocityY;
     Timer gameLoop;
-
+    //Object
+    private Reset reset;
     //score
     int score;
     int foodsEaten; // Keep track of the number of foods eaten
@@ -80,6 +81,9 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
         //game timer
         gameLoop = new Timer(100, this); //how long it takes to start timer, milliseconds gone between frames
         gameLoop.start();
+
+        //Object
+        reset = new Reset();
 
         setGameSpeed(0); // Set the initial game speed
 
@@ -153,7 +157,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
             }
         }
     }
-    
+
     private void setGameSpeed(int stage) {
         int delay =0 ;
         switch (stage) {
@@ -188,6 +192,16 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         draw(g);
+
+        FontMetrics fontMetrics = g.getFontMetrics(new Font("Arial", Font.PLAIN, 14));
+
+        if (currentStage > 1 && currentStage < 5) {
+            // Display a subtle message when advancing to the next stage
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Arial", Font.PLAIN, 14));
+            String stageMessage = "Stage " + (currentStage - 1) + " completed. Advancing to Stage " + currentStage + "...";
+            g.drawString(stageMessage, (boardWidth - fontMetrics.stringWidth(stageMessage)) / 2, tileSize * 2);
+        }
     }
 
     public void draw(Graphics g) {
@@ -372,8 +386,12 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
 
         // Check if the snake head collided with the border after teleporting
         if ((snakeHead.x == 0 || snakeHead.x == boardWidth / tileSize - 1 || snakeHead.y == 0 || snakeHead.y == boardHeight / tileSize - 1) && stackedTeleports > 0) {
-            // Decrement the teleport count if the snake head collides with the border after teleporting
-            stackedTeleports--;
+            // Check if the snake head actually went outside the screen after teleporting
+            boolean wentOutsideScreen = (snakeHead.x < 0 || snakeHead.x >= boardWidth / tileSize || snakeHead.y < 0 || snakeHead.y >= boardHeight / tileSize);
+            if (wentOutsideScreen) {
+                // Decrement the teleport count if the snake head went outside the screen after teleporting
+                stackedTeleports--;
+            }
         }
 
         // Update the display after eating teleport food
@@ -407,14 +425,8 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
         // Check if the snake head collided with the border and Wrap around the screen if the snake head reaches the border if has stackTeleport
         if (snakeHead.x < 0 || snakeHead.x >= boardWidth / tileSize || snakeHead.y < 0 || snakeHead.y >= boardHeight / tileSize) {
             if (stackedTeleports > 0) {
-                // Check if the snake head collided with the border after teleporting
-                boolean collided = (snakeHead.x == 0 || snakeHead.x == boardWidth / tileSize - 1 || snakeHead.y == 0 || snakeHead.y == boardHeight / tileSize - 1);
-
-                // If the snake head collided with the border after teleporting, decrement the teleport count
-                if (collided) {
-                    stackedTeleports--;
-                }
                 wrapAroundScreen();
+                stackedTeleports--;
             } else {
                 gameOver = true;
             }
@@ -467,21 +479,7 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
             else
                 input = JOptionPane.showConfirmDialog(null, "Thank you for playing! Do You want to play again?", "Congratulations", JOptionPane.YES_NO_OPTION);
             if (input == JOptionPane.YES_OPTION) {
-                // Reset game state
-                score = 0;
-                foodsEaten = 0;
-                stackedTeleports = 0;
-                currentStage = 1; // Reset to stage 1
-                gameOver = false;
-                snakeBody.clear();
-                snakeHead = new Tile(5, 5); // Reset snake head position
-                velocityX = 1; // Reset velocity to move right
-                velocityY = 0;
-                placeFood(); // Place the food again
-                setGameSpeed(0); // Reset the game speed
-
-                // Remove collision blocks
-                collisionBlocks.clear();
+                resetAll();
             } else {
                 gameLoop.stop(); // Stop the game loop
                 System.exit(0);
@@ -514,6 +512,26 @@ public class SnakeGame extends JPanel implements ActionListener, KeyListener {
             velocityX = 1;
             velocityY = 0;
         }
+    }
+
+    private void resetAll() {
+        // Reset game state
+        reset.resetAll(); // Reset score, foodsEaten, stackedTeleports, and currentStage using ScoreManager methods
+        score = reset.getScore(); // Update score from ScoreManager
+        foodsEaten = reset.getFoodsEaten(); // Update foodsEaten from ScoreManager
+        stackedTeleports = reset.getStackedTeleports(); // Update stackedTeleports from ScoreManager
+        currentStage = reset.getCurrentStage(); // Update currentStage from ScoreManager
+
+        gameOver = false;
+        snakeBody.clear();
+        snakeHead = new Tile(5, 5); // Reset snake head position
+        velocityX = 1; // Reset velocity to move right
+        velocityY = 0;
+        placeFood(); // Place the food again
+        setGameSpeed(0); // Reset the game speed
+
+        // Remove collision blocks
+        collisionBlocks.clear();
     }
 
     public void addGameOverListener(GameOverListener listener) {
